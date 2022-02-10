@@ -1,0 +1,70 @@
+@startuml
+
+title Cryptocurrency trader
+
+start
+
+:初期化;
+:取引通貨設定;
+:市場分析初期化;
+
+repeat
+
+    '注文確認
+
+    package 注文確認 {
+        :サーバー時間取得
+        get_server_time();
+        :注文状況取得
+        get_open_oders();
+        :各オーダー毎に保持期間計算;
+
+        if (保持期間 > 閾値) then (No)
+            :注文保持;
+        else (Yes)
+            :注文削除
+            cancel_order(symbol, orderId);
+        endif
+    }
+
+    :UI情報更新;
+
+    package 資産確認 {
+        :アカウント情報取得
+        get_account();
+        :各通貨毎に市場情報取得
+        get_orderbook_ticker(symbol);
+        :保有資産算出
+        保有通貨のfreeとlockedを基軸通貨換算;
+    }
+    
+    package トレード {
+        :市場分析;
+
+        if (買い判定値 > 閾値) then (Yes)
+            :取引数量計算;
+            :order_limit_buy(symbol, quantity, price);
+        elseif (売り判定値 > 閾値) then (Yes)
+            :取引数量計算;
+            :order_limit_sell(symbol, quantity, price);
+        endif
+    }
+    :UI情報更新;
+
+    package データ出力 {
+        if (送信間隔 > 閾値) then (Yes)
+            :LINE送信;
+        else (No)
+        endif
+
+        if (出力間隔 > 閾値) then (Yes)
+            :CSV出力;
+        else (No)
+        endif
+    }    
+backward:待機;
+repeatwhile (停止フラグ.is_set() ?)
+
+stop
+
+@enduml
